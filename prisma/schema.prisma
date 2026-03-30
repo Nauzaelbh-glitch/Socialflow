@@ -1,0 +1,278 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+enum Platform {
+  FACEBOOK
+  INSTAGRAM
+  LINKEDIN
+  TWITTER
+  TIKTOK
+}
+
+enum PostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHING
+  PUBLISHED
+  FAILED
+}
+
+enum AccountStatus {
+  ACTIVE
+  EXPIRED
+  REVOKED
+  ERROR
+}
+
+model Company {
+  id        String    @id @default(uuid())
+  name      String
+  slug      String    @unique
+  settings  Json      @default("{}")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  users          User[]
+  socialAccounts SocialAccount[]
+  posts          Post[]
+  templates      Template[]
+  media          Media[]
+
+  @@index([slug])
+  @@map("companies")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  companyId    String
+  email        String    @unique
+  passwordHash String
+  firstName    String?
+  lastName     String?
+  avatarUrl    String?
+  role         UserRole  @default(EDITOR)
+  isActive     Boolean   @default(true)
+  mfaEnabled   Boolean   @default(false)
+  mfaSecret    String?
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  company        Company       @relation(fields: [companyId], references: [id])
+  socialAccounts SocialAccount[]
+  posts          Post[]
+  templates      Template[]
+  media          Media[]
+  permissions    Permission[]
+
+  @@index([companyId])
+  @@map("users")
+}
+
+model SocialAccount {
+  id                    String        @id @default(uuid())
+  companyId            String
+  userId               String
+  platform             Platform
+  platformAccountId    String
+  platformAccountName  String?
+  platformPageId       String?
+  accessTokenEncrypted String
+  refreshTokenEncrypted String?
+  tokenExpiresAt       DateTime?
+  status               AccountStatus @default(ACTIVE)
+  permissions          Json          @default("[]")
+  metadata             Json          @default("{}")
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  deletedAt            DateTime?
+
+  company        Company           @relation(fields: [companyId], references: [id])
+  user           User              @relation(fields: [userId], references: [id])
+  userPermissions Permission[]
+  postPlatforms  PostPlatform[]
+  analytics      PostAnalytics[]
+  accountMetrics AccountAnalytics[]
+
+  @@unique([companyId, platform, platformAccountId])
+  @@index([companyId])
+  @@index([status])
+  @@map("social_accounts")
+}
+
+model Permission {
+  id               String   @id @default(uuid())
+  userId           String
+  socialAccountId  String?
+  canPublish       Boolean  @default(false)
+  canSchedule      Boolean  @default(false)
+  canViewAnalytics Boolean  @default(true)
+  canManageTeam    Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  user          User           @relation(fields: [userId], references: [id])
+  socialAccount SocialAccount? @relation(fields: [socialAccountId], references: [id])
+
+  @@map("permissions")
+}
+
+model Template {
+  id              String   @id @default(uuid())
+  companyId       String
+  userId          String
+  name            String
+  description     String?
+  category        String?
+  contentTemplate Json
+  variables       Json     @default("[]")
+  thumbnailUrl    String?
+  usageCount      Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  deletedAt       DateTime?
+
+  company Company @relation(fields: [companyId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+  posts  Post[]
+
+  @@index([companyId])
+  @@map("templates")
+}
+
+model Media {
+  id                String   @id @default(uuid())
+  companyId         String
+  userId            String
+  filename          String
+  originalFilename  String?
+  mimeType          String?
+  sizeBytes         Int?
+  storageUrl        String
+  storageKey        String
+  thumbnailUrl      String?
+  metadata          Json     @default("{}")
+  tags              String[] @default([])
+  folderPath        String?
+  createdAt         DateTime @default(now())
+  deletedAt         DateTime?
+
+  company Company    @relation(fields: [companyId], references: [id])
+  user    User      @relation(fields: [userId], references: [id])
+  posts   PostMedia[]
+
+  @@index([companyId])
+  @@map("media")
+}
+
+model Post {
+  id           String     @id @default(uuid())
+  companyId    String
+  userId       String
+  templateId   String?
+  title        String?
+  content      Json
+  status       PostStatus @default(DRAFT)
+  scheduledAt  DateTime?
+  publishedAt  DateTime?
+  visibility   String     @default("public")
+  metadata     Json       @default("{}")
+  errorMessage String?
+  retryCount   Int        @default(0)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  deletedAt    DateTime?
+
+  company   Company       @relation(fields: [companyId], references: [id])
+  user      User          @relation(fields: [userId], references: [id])
+  template  Template?     @relation(fields: [templateId], references: [id])
+  platforms PostPlatform[]
+  media     PostMedia[]
+  analytics PostAnalytics[]
+
+  @@index([companyId, status])
+  @@index([scheduledAt])
+  @@map("posts")
+}
+
+model PostPlatform {
+  id              String     @id @default(uuid())
+  postId          String
+  socialAccountId String
+  status          PostStatus @default(DRAFT)
+  platformPostId  String?
+  publishedAt     DateTime?
+  errorMessage    String?
+  retryCount      Int        @default(0)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  post          Post          @relation(fields: [postId], references: [id])
+  socialAccount SocialAccount @relation(fields: [socialAccountId], references: [id])
+
+  @@unique([postId, socialAccountId])
+  @@map("post_platforms")
+}
+
+model PostMedia {
+  id        String   @id @default(uuid())
+  postId    String
+  mediaId   String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  post  Post  @relation(fields: [postId], references: [id])
+  media Media @relation(fields: [mediaId], references: [id])
+
+  @@unique([postId, mediaId])
+  @@map("post_media")
+}
+
+model PostAnalytics {
+  id              String   @id @default(uuid())
+  postId          String
+  socialAccountId String
+  platform        Platform
+  platformPostId  String?
+  collectedAt     DateTime
+  metrics         Json
+  createdAt       DateTime @default(now())
+
+  post          Post          @relation(fields: [postId], references: [id])
+  socialAccount SocialAccount @relation(fields: [socialAccountId], references: [id])
+
+  @@unique([postId, socialAccountId, collectedAt])
+  @@index([postId, collectedAt])
+  @@map("post_analytics")
+}
+
+model AccountAnalytics {
+  id              String   @id @default(uuid())
+  socialAccountId String
+  collectedAt     DateTime
+  followersCount  Int?
+  followingCount Int?
+  postsCount     Int?
+  engagementRate Float?
+  metrics         Json     @default("{}")
+  createdAt       DateTime @default(now())
+
+  socialAccount SocialAccount @relation(fields: [socialAccountId], references: [id])
+
+  @@unique([socialAccountId, collectedAt])
+  @@index([socialAccountId, collectedAt])
+  @@map("account_analytics")
+}
