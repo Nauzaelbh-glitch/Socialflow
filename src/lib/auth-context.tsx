@@ -160,11 +160,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [fetchUser]);
 
   const signIn = useCallback(async (email: string, password: string) => {
-    if (!supabase) {
-      return { error: 'Cliente no inicializado' };
-    }
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const client = supabase || getSupabaseClient();
+      if (!client) {
+        return { error: 'Cliente no inicializado' };
+      }
+
+      const { data, error } = await client.auth.signInWithPassword({
         email,
         password,
       });
@@ -210,10 +212,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
-    if (!supabase) return;
     setIsLoading(true);
     try {
-      await supabase.auth.signOut();
+      const client = supabase || getSupabaseClient();
+      if (client) {
+        await client.auth.signOut();
+      }
       setUser(null);
     } catch (err) {
       console.error('Sign out error:', err);
