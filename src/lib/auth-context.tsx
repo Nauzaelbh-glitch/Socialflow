@@ -96,6 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
+    let fetchInProgress = false;
 
     const initAuth = async () => {
       if (!mounted) return;
@@ -120,12 +121,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (!mounted) return;
 
-        if (authUser) {
+        if (authUser && !fetchInProgress) {
+          fetchInProgress = true;
           const response = await fetch(`/api/auth/user?id=${authUser.id}`);
           if (response.ok && mounted) {
             const data = await response.json();
             setUser(data.user);
           }
+          fetchInProgress = false;
         }
 
         if (mounted) {
@@ -142,22 +145,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     initAuth();
 
-    const subscription = supabase?.auth.onAuthStateChange(async (event, session) => {
-      if (!mounted) return;
-
-      if (event === 'SIGNED_IN' && session?.user) {
-        await fetchUser(session.user.id);
-      } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-        setIsLoading(false);
-      }
-    });
-
     return () => {
       mounted = false;
-      subscription?.data?.subscription?.unsubscribe();
     };
-  }, [fetchUser]);
+  }, []);
 
   const signIn = useCallback(async (email: string, password: string) => {
     try {
@@ -176,7 +167,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (data.user) {
-        await fetchUser(data.user.id);
+        setUser({
+          id: data.user.id,
+          email: data.user.email || email,
+          firstName: data.user.user_metadata?.firstName || null,
+          lastName: data.user.user_metadata?.lastName || null,
+          avatarUrl: data.user.user_metadata?.avatarUrl || null,
+          role: 'ADMIN' as const,
+          company: null,
+          lastLoginAt: data.user.last_sign_in_at || null,
+        });
       }
 
       return {};
@@ -184,7 +184,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('Sign in error:', err);
       return { error: 'Error al iniciar sesión' };
     }
-  }, [fetchUser, supabase]);
+  }, [supabase]);
 
   const signUp = useCallback(async (data: RegisterData) => {
     setIsLoading(true);

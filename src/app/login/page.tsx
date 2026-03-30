@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
@@ -14,12 +14,14 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const redirectRef = useRef(false);
 
   useEffect(() => {
-    if (user && !authLoading) {
-      window.location.href = '/dashboard';
+    if (user && !authLoading && !redirectRef.current) {
+      redirectRef.current = true;
+      router.push('/dashboard');
     }
-  }, [user, authLoading]);
+  }, [user, authLoading, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +43,7 @@ export default function LoginPage() {
         return;
       }
 
-      window.location.href = '/dashboard';
+      router.push('/dashboard');
     } catch (err) {
       setError('Error al iniciar sesión. Por favor, intenta de nuevo.');
       setIsSubmitting(false);
