@@ -2,107 +2,137 @@
 
 import { useState, useEffect } from 'react';
 import { 
-  TrendingUp, 
-  TrendingDown,
-  Calendar,
-  Eye,
-  Heart,
-  MessageCircle,
-  Send,
-  BarChart3,
-  Clock,
-  CheckCircle2,
-  Plus,
-  Bell,
-  Search,
-  Instagram,
-  Facebook,
-  Linkedin,
-  Twitter,
-  MoreHorizontal,
-  BellRing,
-  Settings,
-  Home,
-  BarChart,
-  MessageSquare,
-  LogOut,
-  ChevronLeft,
-  ChevronRight,
-  Users,
-  Video
+  description,
+  favorite,
+  visibility,
+  group,
+  dashboard,
+  business,
+  share,
+  send,
+  calendar_today,
+  analytics,
+  settings,
+  help,
+  logout,
+  notifications,
+  account_circle,
+  search,
+  add_circle,
+  link,
+  check_circle,
+  warning,
+  social_leaderboard,
+  camera,
+  work,
+  close,
+  music_note,
+  auto_awesome,
+  trending_up,
+  calendar_month,
+  add
 } from 'lucide-react';
 
 const navItems = [
-  { icon: Home, label: 'Inicio', active: true },
-  { icon: Calendar, label: 'Calendario', active: false },
-  { icon: BarChart, label: 'Estadísticas', active: false },
-  { icon: Send, label: 'Publicar', active: false },
-  { icon: MessageSquare, label: 'Mensajes', active: false },
+  { icon: dashboard, label: 'Dashboard', active: true, href: '#' },
+  { icon: business, label: 'Empresas', active: false, href: '#' },
+  { icon: share, label: 'Cuentas Sociales', active: false, href: '#' },
+  { icon: send, label: 'Publicaciones', active: false, href: '#' },
+  { icon: calendar_today, label: 'Calendario', active: false, href: '#' },
+  { icon: analytics, label: 'Analytics', active: false, href: '#' },
+  { icon: settings, label: 'Configuración', active: false, href: '#' },
 ];
 
-const bottomNavItems = [
-  { icon: Settings, label: 'Configuración' },
-  { icon: LogOut, label: 'Cerrar sesión' },
-];
-
-const stats = [
-  { 
-    label: 'Total',
-    value: '12.5K',
-    change: '+15%',
-    trend: 'up',
-    color: '#10B981'
+const platforms = [
+  {
+    name: 'Facebook',
+    icon: social_leaderboard,
+    color: '#1877F2',
+    status: 'Conectado',
+    lastConnected: 'hace 12 días',
+    connected: true,
+    gradient: false,
   },
-  { 
-    label: 'Active',
-    value: '3.2K',
-    change: '+8%',
-    trend: 'up',
-    color: '#14B8A6'
+  {
+    name: 'Instagram',
+    icon: camera,
+    color: '#f09433',
+    gradient: true,
+    gradientColors: ['#f09433', '#e6683c', '#bc1888'],
+    status: 'Conectado',
+    lastConnected: 'hace 8 días',
+    connected: true,
   },
-  { 
-    label: 'Completed',
-    value: '1.8K',
-    change: '+12%',
-    trend: 'up',
-    color: '#10B981'
+  {
+    name: 'LinkedIn',
+    icon: work,
+    color: '#0A66C2',
+    status: 'Conectado',
+    lastConnected: 'hace 30 días',
+    connected: true,
+    gradient: false,
   },
-  { 
-    label: 'Scheduled',
-    value: '856',
-    change: '-3%',
-    trend: 'down',
-    color: '#14B8A6'
+  {
+    name: 'Twitter/X',
+    icon: close,
+    color: '#000000',
+    status: 'Expired',
+    lastConnected: 'Requiere re-autenticación',
+    connected: false,
+    gradient: false,
+    isDark: true,
+  },
+  {
+    name: 'TikTok',
+    icon: music_note,
+    color: '#000000',
+    status: 'Conectar',
+    lastConnected: 'Conecta tu cuenta para empezar',
+    connected: false,
+    gradient: false,
+    showAddButton: true,
   },
 ];
 
 const recentActivity = [
   {
-    platform: 'Instagram',
-    icon: Instagram,
-    content: 'Nueva publicación con imagen destacada',
-    time: 'Hace 2 horas',
-    engagement: '1.2K'
+    platform: 'Facebook',
+    icon: social_leaderboard,
+    color: '#1877F2',
+    content: 'Post publicado en Facebook',
+    time: 'hace 2h',
+    campaign: 'Campaña Primavera',
   },
   {
-    platform: 'Facebook',
-    icon: Facebook,
-    content: 'Video promocional publicado exitosamente',
-    time: 'Hace 5 horas',
-    engagement: '856'
+    platform: 'Instagram',
+    icon: camera,
+    color: '#f09433',
+    gradient: true,
+    content: 'Nueva cuenta de Instagram conectada',
+    time: 'hace 4h',
+    campaign: 'Perfil Business',
   },
   {
     platform: 'LinkedIn',
-    icon: Linkedin,
-    content: 'Artículo compartido con tu red',
-    time: 'Ayer',
-    engagement: '423'
+    icon: calendar_month,
+    color: '#10b981',
+    content: 'Post programado para mañana',
+    time: 'hace 6h',
+    campaign: 'LinkedIn Update',
+  },
+  {
+    platform: 'Twitter',
+    icon: warning,
+    color: '#ba1a1a',
+    content: 'Sesión expirada en Twitter',
+    time: 'hace 10h',
+    campaign: 'Acción requerida',
+    isError: true,
   },
 ];
 
 export default function DashboardPage() {
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
@@ -116,341 +146,269 @@ export default function DashboardPage() {
     return 'Buenas noches';
   };
 
+  const formatDate = () => {
+    return currentTime.toLocaleDateString('es-ES', { 
+      day: 'numeric', 
+      month: 'long', 
+      year: 'numeric' 
+    });
+  };
+
   return (
-    <div className="min-h-screen flex" style={{ backgroundColor: '#f8fafc' }}>
-      <aside 
-        className={`flex flex-col transition-all duration-300 ${
-          isSidebarCollapsed ? 'w-20' : 'w-72'
-        }`}
-        style={{
-          background: 'linear-gradient(180deg, #059669 0%, #10B981 50%, #34d399 100%)',
-        }}
-      >
-        <div className="p-6 border-b border-emerald-600">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0 shadow-lg">
-              <span className="text-white font-bold text-xl">S</span>
+    <div className="min-h-screen bg-[#f8f9fa] text-[#191c1d]">
+      {/* TopNavBar */}
+      <header className="fixed top-0 w-full h-[60px] z-50 bg-white/80 backdrop-blur-md shadow-sm flex justify-between items-center px-6">
+        <div className="flex items-center gap-4">
+          <span className="text-xl font-bold tracking-tight text-slate-900">SocialFlow</span>
+          <div className="hidden md:flex items-center bg-slate-50 rounded-full px-4 py-1.5 ml-4">
+            <search className="w-4 h-4 text-slate-400 mr-2" />
+            <input 
+              className="bg-transparent border-none focus:ring-0 text-sm w-64 text-slate-600 outline-none" 
+              placeholder="Buscar..." 
+              type="text"
+            />
+          </div>
+        </div>
+        <div className="flex items-center gap-4">
+          <button className="p-2 rounded-full hover:bg-slate-50 transition-colors active:scale-95 duration-200">
+            <notifications className="w-5 h-5 text-slate-500" />
+          </button>
+          <button className="p-2 rounded-full hover:bg-slate-50 transition-colors active:scale-95 duration-200">
+            <account_circle className="w-5 h-5 text-slate-500" />
+          </button>
+        </div>
+      </header>
+
+      {/* SideNavBar */}
+      <aside className="fixed left-0 top-0 h-screen w-[250px] z-40 bg-slate-50 border-r border-slate-100 flex flex-col py-8 px-4 pt-[80px]">
+        <div className="px-4 mb-6">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-xl overflow-hidden bg-[#10b981]">
+              <div className="w-full h-full flex items-center justify-center text-white font-bold text-lg">
+                S
+              </div>
             </div>
-            {!isSidebarCollapsed && (
-              <span className="text-2xl font-bold text-white tracking-tight">SocialFlow</span>
-            )}
+            <div>
+              <p className="text-sm font-bold text-slate-900">SocialFlow</p>
+              <p className="text-[10px] text-slate-500 uppercase tracking-wider">Editorial Workspace</p>
+            </div>
           </div>
         </div>
 
-        <nav className="flex-1 p-4 space-y-2">
+        <nav className="flex-1 space-y-1">
           {navItems.map((item, i) => (
-            <button
+            <a
               key={i}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                item.active 
-                  ? 'bg-white text-emerald-700 shadow-lg' 
-                  : 'text-white hover:bg-white/20'
+              href={item.href}
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                item.active
+                  ? 'bg-emerald-50 text-emerald-700 font-bold border-r-4 border-emerald-600'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
               }`}
             >
-              <item.icon className="w-6 h-6 flex-shrink-0" />
-              {!isSidebarCollapsed && (
-                <span className="font-semibold text-base">{item.label}</span>
-              )}
-            </button>
+              <item.icon className="w-5 h-5" />
+              <span className="text-sm font-medium">{item.label}</span>
+            </a>
           ))}
         </nav>
 
-        <div className="p-4 space-y-2 border-t border-emerald-600">
-          {bottomNavItems.map((item, i) => (
-            <button
-              key={i}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white hover:bg-white/20 transition-all duration-200"
-            >
-              <item.icon className="w-6 h-6 flex-shrink-0" />
-              {!isSidebarCollapsed && (
-                <span className="font-semibold text-base">{item.label}</span>
-              )}
-            </button>
-          ))}
-        </div>
-
-        <div className="p-4 border-t border-emerald-600">
-          <button
-            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-white hover:bg-white/20 transition-all duration-200"
-          >
-            {isSidebarCollapsed ? (
-              <ChevronRight className="w-6 h-6" />
-            ) : (
-              <>
-                <ChevronLeft className="w-6 h-6" />
-                <span className="text-base font-medium">Colapsar</span>
-              </>
-            )}
+        <div className="mt-auto space-y-1 border-t border-slate-100 pt-4">
+          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-100 transition-all">
+            <help className="w-5 h-5" />
+            <span className="text-sm">Help</span>
+          </button>
+          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-[#ba1a1a] hover:bg-red-50 transition-all">
+            <logout className="w-5 h-5" />
+            <span className="text-sm">Logout</span>
           </button>
         </div>
       </aside>
 
-      <main className="flex-1 overflow-auto">
-        <header className="px-8 py-6" style={{ backgroundColor: 'white', borderBottom: '1px solid #e5e7eb' }}>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
-                {getGreeting()}, Admin
-              </h1>
-              <p className="text-gray-500 mt-1 text-base">
-                {currentTime.toLocaleDateString('es-ES', { 
-                  weekday: 'long', 
-                  day: 'numeric', 
-                  month: 'long' 
-                })}
-              </p>
-            </div>
-            <div className="flex items-center gap-4">
-              <button className="p-3 rounded-xl hover:bg-gray-100 transition-colors relative">
-                <BellRing className="w-6 h-6 text-gray-600" />
-                <span className="absolute top-2 right-2 w-2 h-2 bg-emerald-500 rounded-full"></span>
-              </button>
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center text-white font-semibold text-lg shadow-lg" style={{ background: 'linear-gradient(135deg, #10B981 0%, #14B8A6 100%)' }}>
-                A
-              </div>
-            </div>
+      {/* Main Content Area */}
+      <main className="ml-[250px] pt-[60px] p-8">
+        {/* Welcome Section */}
+        <section className="mb-10 flex justify-between items-end">
+          <div>
+            <h1 className="text-3xl font-extrabold text-[#191c1d] tracking-tight mb-1">
+              {getGreeting()}, Admin
+            </h1>
+            <p className="text-[#3c4a42] font-medium flex items-center gap-2">
+              Aquí está el resumen de hoy <span className="w-1.5 h-1.5 bg-[#bbcabf] rounded-full"></span> {formatDate()}
+            </p>
           </div>
-        </header>
+          <div className="flex gap-3">
+            <button className="flex items-center gap-2 px-6 py-3 bg-[#10b981] text-white font-bold rounded-xl shadow-lg hover:scale-[1.02] transition-transform active:scale-95">
+              <add_circle className="w-5 h-5" />
+              + Nueva Publicación
+            </button>
+            <button className="flex items-center gap-2 px-6 py-3 bg-[#e1e3e4] text-[#191c1d] font-bold rounded-xl hover:bg-[#e7e8e9] transition-colors active:scale-95">
+              <link className="w-5 h-5" />
+              + Conectar Cuenta
+            </button>
+          </div>
+        </section>
 
-        <div className="p-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {stats.map((stat, i) => (
-              <div 
-                key={i}
-                className="rounded-2xl p-6 hover:shadow-xl transition-all duration-300 cursor-pointer"
-                style={{ 
-                  background: 'linear-gradient(135deg, #10B981 0%, #14B8A6 100%)',
-                  boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.1), 0 2px 4px -1px rgba(16, 185, 129, 0.06)'
-                }}
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="w-3 h-3 rounded-full bg-white/40" />
-                  <div className={`flex items-center gap-1 text-sm font-bold px-3 py-1 rounded-full ${
-                    stat.trend === 'up' 
-                      ? 'bg-white/20 text-white' 
-                      : 'bg-red-500/20 text-red-200'
-                  }`}>
-                    {stat.trend === 'up' ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                    {stat.change}
-                  </div>
-                </div>
-                <h3 className="text-4xl font-bold text-white tracking-tight mb-2">{stat.value}</h3>
-                <p className="text-white/80 font-semibold text-base">{stat.label}</p>
+        {/* Bento Grid Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          {/* Metric Card 1 */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-[#bbcabf]/10 group hover:shadow-md transition-shadow">
+            <div className="flex justify-between items-start mb-4">
+              <div className="p-3 bg-[#006c49]/10 rounded-lg text-[#006c49]">
+                <description className="w-5 h-5" />
               </div>
-            ))}
+              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">+12% vs anterior</span>
+            </div>
+            <p className="text-[#3c4a42] text-sm font-medium mb-1">Total Posts</p>
+            <p className="text-4xl font-extrabold text-[#191c1d]">142</p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 rounded-2xl p-6" style={{ backgroundColor: 'white', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}>
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 mb-1">Engagement</h2>
-                  <p className="text-gray-500 text-sm">Metrics overview</p>
-                </div>
-                <select className="px-4 py-2 rounded-xl text-sm font-medium text-gray-700 focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer border border-gray-300">
-                  <option>This Week</option>
-                  <option>Last Week</option>
-                  <option>This Month</option>
-                </select>
+          {/* Metric Card 2 */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-[#bbcabf]/10 group hover:shadow-md transition-shadow">
+            <div className="flex justify-between items-start mb-4">
+              <div className="p-3 bg-[#006b5f]/10 rounded-lg text-[#006b5f]">
+                <favorite className="w-5 h-5" />
               </div>
-              
-              <div className="space-y-5">
-                <div className="flex items-center gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold text-gray-700">Reach</span>
-                      <span className="text-sm font-bold text-gray-900">12.5K</span>
-                    </div>
-                    <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full rounded-full"
-                        style={{ 
-                          width: '75%',
-                          background: 'linear-gradient(90deg, #10B981 0%, #14B8A6 100%)'
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold text-gray-700">Engagement</span>
-                      <span className="text-sm font-bold text-gray-900">3.2K</span>
-                    </div>
-                    <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full rounded-full"
-                        style={{ 
-                          width: '60%',
-                          background: 'linear-gradient(90deg, #10B981 0%, #14B8A6 100%)'
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold text-gray-700">Link Clicks</span>
-                      <span className="text-sm font-bold text-gray-900">1.8K</span>
-                    </div>
-                    <div className="h-3 bg-gray-200 rounded-full overflow-hidden">
-                      <div 
-                        className="h-full rounded-full"
-                        style={{ 
-                          width: '45%',
-                          background: 'linear-gradient(90deg, #10B981 0%, #14B8A6 100%)'
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 pt-6 border-t border-gray-200">
-                <button className="w-full py-3 rounded-xl font-semibold text-white transition-all duration-300 flex items-center justify-center gap-2 hover:shadow-lg" style={{ background: 'linear-gradient(135deg, #10B981 0%, #14B8A6 100%)' }}>
-                  <Plus className="w-5 h-5" />
-                  Nueva Publicación
-                </button>
-              </div>
+              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">+0.3%</span>
             </div>
+            <p className="text-[#3c4a42] text-sm font-medium mb-1">Engagement Rate</p>
+            <p className="text-4xl font-extrabold text-[#191c1d]">4.8%</p>
+          </div>
 
-            <div className="rounded-2xl p-6" style={{ backgroundColor: 'white', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900">Actividad Reciente</h2>
-                <button className="text-sm font-semibold hover:text-emerald-600 transition-colors" style={{ color: '#10B981' }}>Ver todo</button>
+          {/* Metric Card 3 */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-[#bbcabf]/10 group hover:shadow-md transition-shadow">
+            <div className="flex justify-between items-start mb-4">
+              <div className="p-3 bg-[#005eb5]/10 rounded-lg text-[#005eb5]">
+                <visibility className="w-5 h-5" />
               </div>
-              <div className="space-y-4">
+              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">+8%</span>
+            </div>
+            <p className="text-[#3c4a42] text-sm font-medium mb-1">Reach</p>
+            <p className="text-4xl font-extrabold text-[#191c1d]">12.4K</p>
+          </div>
+
+          {/* Metric Card 4 */}
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-[#bbcabf]/10 group hover:shadow-md transition-shadow">
+            <div className="flex justify-between items-start mb-4">
+              <div className="p-3 bg-[#191c1d]/5 rounded-lg text-[#191c1d]">
+                <group className="w-5 h-5" />
+              </div>
+              <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">+2</span>
+            </div>
+            <p className="text-[#3c4a42] text-sm font-medium mb-1">Active Accounts</p>
+            <p className="text-4xl font-extrabold text-[#191c1d]">8</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Platform Status (Column Span 2) */}
+          <div className="lg:col-span-2 space-y-6">
+            <h2 className="text-xl font-bold text-[#191c1d]">Estado de Plataformas</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {platforms.map((platform, i) => (
+                <div 
+                  key={i}
+                  className="bg-white p-5 rounded-xl border border-[#bbcabf]/10 flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-4">
+                    <div 
+                      className="w-12 h-12 flex items-center justify-center rounded-xl"
+                      style={{ 
+                        backgroundColor: platform.gradient ? undefined : `${platform.color}10`,
+                        background: platform.gradient 
+                          ? `linear-gradient(to top right, ${platform.gradientColors.join(', ')})`
+                          : undefined,
+                        color: platform.isDark ? 'white' : platform.color
+                      }}
+                    >
+                      <platform.icon className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-[#191c1d]">{platform.name}</p>
+                      <p className="text-xs text-[#3c4a42]">{platform.lastConnected}</p>
+                    </div>
+                  </div>
+                  {platform.showAddButton ? (
+                    <button className="flex items-center gap-1 text-[#3c4a42] bg-[#e7e8e9] px-4 py-2 rounded-full text-xs font-bold hover:bg-[#e1e3e4] transition-colors">
+                      <add className="w-4 h-4" /> Conectar
+                    </button>
+                  ) : (
+                    <div 
+                      className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${
+                        platform.connected 
+                          ? 'text-emerald-600 bg-emerald-50' 
+                          : 'text-[#ba1a1a] bg-red-100/30'
+                      }`}
+                    >
+                      {platform.connected ? (
+                        <>
+                          <check_circle className="w-4 h-4" /> Conectado
+                        </>
+                      ) : (
+                        <>
+                          <warning className="w-4 h-4" /> {platform.status}
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Activity Feed */}
+          <div className="space-y-6">
+            <h2 className="text-xl font-bold text-[#191c1d]">Actividad Reciente</h2>
+            <div className="bg-white rounded-xl border border-[#bbcabf]/10 overflow-hidden">
+              <div className="divide-y divide-[#f3f4f5]">
                 {recentActivity.map((activity, i) => (
-                  <div key={i} className="flex items-start gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors">
-                    <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#f3f4f6' }}>
-                      <activity.icon className="w-6 h-6" style={{ color: '#10B981' }} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-gray-900 mb-1">{activity.platform}</p>
-                      <p className="text-sm text-gray-600 line-clamp-2">{activity.content}</p>
-                      <div className="flex items-center gap-3 mt-2">
-                        <span className="text-xs text-gray-400">{activity.time}</span>
-                        <span className="text-xs font-bold" style={{ color: '#10B981' }}>{activity.engagement}</span>
+                  <div 
+                    key={i}
+                    className="p-4 hover:bg-[#f8f9fa] transition-colors cursor-pointer group"
+                  >
+                    <div className="flex gap-4">
+                      <div 
+                        className="mt-1 w-8 h-8 rounded-full flex items-center justify-center"
+                        style={{
+                          backgroundColor: activity.gradient ? undefined : `${activity.color}10`,
+                          background: activity.gradient 
+                            ? `linear-gradient(to top right, ${activity.color}, #bc1888)`
+                            : undefined,
+                          color: activity.gradient ? 'white' : activity.color
+                        }}
+                      >
+                        <activity.icon className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <p className={`text-sm font-semibold text-[#191c1d] group-hover:text-[#006c49] transition-colors ${activity.isError ? 'group-hover:text-[#ba1a1a]' : ''}`}>
+                          {activity.content}
+                        </p>
+                        <p className="text-xs text-[#3c4a42]">
+                          {activity.time} • {activity.campaign}
+                        </p>
                       </div>
                     </div>
                   </div>
                 ))}
               </div>
+              <button className="w-full py-3 text-xs font-bold text-[#3c4a42] hover:bg-[#f8f9fa] transition-colors">
+                Ver todo el historial
+              </button>
             </div>
-          </div>
 
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="rounded-2xl p-6" style={{ backgroundColor: 'white', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}>
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Platform Distribution</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#E1306C' }}>
-                      <Instagram className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="font-semibold text-gray-700">Instagram</span>
-                  </div>
-                  <span className="text-sm font-bold text-gray-900">45%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#4267B2' }}>
-                      <Facebook className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="font-semibold text-gray-700">Facebook</span>
-                  </div>
-                  <span className="text-sm font-bold text-gray-900">30%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#0077B5' }}>
-                      <Linkedin className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="font-semibold text-gray-700">LinkedIn</span>
-                  </div>
-                  <span className="text-sm font-bold text-gray-900">15%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-black">
-                      <Twitter className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="font-semibold text-gray-700">X</span>
-                  </div>
-                  <span className="text-sm font-bold text-gray-900">10%</span>
+            {/* Small Analytics Snapshot */}
+            <div className="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-xl p-6 text-white shadow-lg relative overflow-hidden">
+              <div className="relative z-10">
+                <p className="text-xs font-bold opacity-80 uppercase tracking-widest mb-1">Crecimiento Mensual</p>
+                <h3 className="text-2xl font-bold mb-4">+24.8%</h3>
+                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-md rounded-lg p-3">
+                  <auto_awesome className="w-4 h-4 text-emerald-200" />
+                  <p className="text-[11px] leading-tight">
+                    Tu rendimiento es un 15% superior al promedio del sector este mes.
+                  </p>
                 </div>
               </div>
-            </div>
-
-            <div className="rounded-2xl p-6" style={{ backgroundColor: 'white', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}>
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Top Posts</h3>
-              <div className="space-y-3">
-                <div className="p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
-                  <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#fef3c7' }}>
-                      <Heart className="w-5 h-5" style={{ color: '#f59e0b' }} />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-gray-900 mb-1">Product Launch Announcement</p>
-                      <p className="text-xs text-gray-500">2.5K likes • 156 comments</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
-                  <div className="flex items-start gap-3">
-                    <div className="w-12 h-12 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#dbeafe' }}>
-                      <MessageCircle className="w-5 h-5" style={{ color: '#3b82f6' }} />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-gray-900 mb-1">Behind the Scenes</p>
-                      <p className="text-xs text-gray-500">1.8K likes • 98 comments</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-2xl p-6" style={{ backgroundColor: 'white', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}>
-              <h3 className="text-lg font-bold text-gray-900 mb-4">Scheduled Posts</h3>
-              <div className="space-y-3">
-                <div className="p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#dcfce7' }}>
-                      <Send className="w-5 h-5" style={{ color: '#10B981' }} />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-gray-900">Weekly Newsletter</p>
-                      <p className="text-xs text-gray-500">Tomorrow, 10:00 AM</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#fce7f3' }}>
-                      <Video className="w-5 h-5" style={{ color: '#ec4899' }} />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-gray-900">Tutorial Video</p>
-                      <p className="text-xs text-gray-500">Wed, 2:00 PM</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#fef9c3' }}>
-                      <Calendar className="w-5 h-5" style={{ color: '#eab308' }} />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-sm font-semibold text-gray-900">Event Announcement</p>
-                      <p className="text-xs text-gray-500">Fri, 5:00 PM</p>
-                    </div>
-                  </div>
-                </div>
+              <div className="absolute -right-4 -bottom-4 opacity-10">
+                <trending_up className="w-[120px] h-[120px]" />
               </div>
             </div>
           </div>
