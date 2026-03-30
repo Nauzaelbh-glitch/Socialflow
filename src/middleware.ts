@@ -3,6 +3,12 @@ import { NextResponse, type NextRequest } from 'next/server';
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
+  const isApiAuthRoute = pathname.startsWith('/api/auth');
+  
+  if (isApiAuthRoute) {
+    return NextResponse.next();
+  }
+  
   const isAuthPage = pathname.startsWith('/login') ||
                      pathname.startsWith('/register') ||
                      pathname.startsWith('/reset-password');
