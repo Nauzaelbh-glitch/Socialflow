@@ -199,7 +199,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const initAuth = async () => {
       try {
-        const { data: { user: authUser } } = await supabase.auth.getUser();
+        const timeoutPromise = new Promise<'timeout'>((resolve) => {
+          setTimeout(() => resolve('timeout'), 10000);
+        });
+
+        const authPromise = supabase.auth.getUser();
+
+        const result = await Promise.race([authPromise, timeoutPromise]);
+
+        if (result === 'timeout') {
+          console.warn('Auth init timeout');
+          setIsLoading(false);
+          return;
+        }
+
+        const { data: { user: authUser }, error } = result;
+
+        if (error) {
+          console.error('Auth init error:', error);
+          setIsLoading(false);
+          return;
+        }
 
         if (authUser) {
           await fetchUser(authUser.id);
@@ -224,6 +244,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       } catch (err) {
         console.error('Auth state change error:', err);
+        setIsLoading(false);
       }
     });
 
