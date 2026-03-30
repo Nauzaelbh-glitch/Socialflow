@@ -1,9 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/auth';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { PrismaClient } from '@prisma/client';
 import { hash } from 'bcryptjs';
 
 const prisma = new PrismaClient();
+
+function getSupabaseAdmin(): SupabaseClient | null {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  
+  if (!supabaseUrl || !serviceRoleKey) {
+    return null;
+  }
+  
+  return createClient(supabaseUrl, serviceRoleKey);
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,9 +28,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const supabaseAdmin = getSupabaseAdmin();
+    
     if (!supabaseAdmin) {
+      console.error('Supabase admin not configured. URL:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'SET' : 'MISSING', 'Service Role Key:', process.env.SUPABASE_SERVICE_ROLE_KEY ? 'SET' : 'MISSING');
       return NextResponse.json(
-        { error: 'Error de configuración del servidor' },
+        { error: 'Error de configuración del servidor. Falta SERVICE_ROLE_KEY' },
         { status: 500 }
       );
     }
