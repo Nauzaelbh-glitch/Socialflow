@@ -120,7 +120,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (data.user) {
-        await fetchUser(data.user.id);
+        const timeoutPromise = new Promise<'timeout'>((resolve) => {
+          setTimeout(() => resolve('timeout'), 5000);
+        });
+
+        const fetchPromise = fetchUser(data.user.id);
+        const result = await Promise.race([fetchPromise, timeoutPromise]);
+
+        if (result === 'timeout') {
+          console.warn('fetchUser timeout, continuing anyway');
+        }
       }
 
       return {};

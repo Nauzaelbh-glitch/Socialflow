@@ -2,12 +2,16 @@
 
 import { prisma } from '@/lib/db';
 import { supabaseAdmin } from '@/lib/auth';
-import { loginSchema, registerSchema, resetPasswordSchema } from './schema';
+import { loginSchema, registerSchema, resetPasswordSchema, LoginInput, RegisterInput, ResetPasswordInput } from './schema';
 import { slugify } from '@/lib/utils';
 import { revalidatePath } from 'next/cache';
 import bcrypt from 'bcryptjs';
 
-export async function login(data: loginSchema._input) {
+export async function login(data: LoginInput) {
+  if (!supabaseAdmin) {
+    return { error: 'Error de configuración del servidor' };
+  }
+
   const { email, password } = loginSchema.parse(data);
 
   const { data: authData, error: authError } = await supabaseAdmin.auth.signInWithPassword({
@@ -48,7 +52,11 @@ export async function login(data: loginSchema._input) {
   };
 }
 
-export async function register(data: registerSchema._input) {
+export async function register(data: RegisterInput) {
+  if (!supabaseAdmin) {
+    return { error: 'Error de configuración del servidor' };
+  }
+
   const validated = registerSchema.parse(data);
 
   const existingUser = await prisma.user.findUnique({
@@ -113,11 +121,14 @@ export async function register(data: registerSchema._input) {
       role: user.role,
       company: user.company,
     },
-    session: authData.session,
   };
 }
 
 export async function logout() {
+  if (!supabaseAdmin) {
+    return { error: 'Error de configuración del servidor' };
+  }
+
   const { error } = await supabaseAdmin.auth.signOut();
   if (error) {
     return { error: error.message };
@@ -126,7 +137,11 @@ export async function logout() {
   return { success: true };
 }
 
-export async function resetPassword(data: resetPasswordSchema._input) {
+export async function resetPassword(data: ResetPasswordInput) {
+  if (!supabaseAdmin) {
+    return { error: 'Error de configuración del servidor' };
+  }
+
   const validated = resetPasswordSchema.parse(data);
 
   const user = await prisma.user.findUnique({

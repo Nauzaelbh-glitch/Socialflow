@@ -1,11 +1,11 @@
 'use server';
 
 import { prisma } from '@/lib/db';
-import { createCompanySchema, updateCompanySchema } from './schema';
+import { createCompanySchema, updateCompanySchema, CreateCompanyInput, UpdateCompanyInput } from './schema';
 import { slugify } from '@/lib/utils';
 import { revalidatePath } from 'next/cache';
 
-export async function createCompany(data: createCompanySchema._input) {
+export async function createCompany(data: CreateCompanyInput) {
   const slug = data.slug || slugify(data.name);
 
   const company = await prisma.company.create({
@@ -20,7 +20,7 @@ export async function createCompany(data: createCompanySchema._input) {
   return company;
 }
 
-export async function updateCompany(id: string, data: updateCompanySchema._input) {
+export async function updateCompany(id: string, data: UpdateCompanyInput) {
   const company = await prisma.company.update({
     where: { id },
     data: {

@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { retryFailed } from '@/lib/queue';
+import { retryFailedJobs } from '@/lib/queue';
 
 export async function POST() {
   try {
-    const retried = await retryFailed();
+    const retried = await retryFailedJobs();
     return NextResponse.json({ retried });
   } catch (error) {
     console.error('Retry failed jobs error:', error);

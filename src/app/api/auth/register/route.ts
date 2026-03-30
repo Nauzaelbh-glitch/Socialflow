@@ -17,6 +17,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!supabaseAdmin) {
+      return NextResponse.json(
+        { error: 'Error de configuración del servidor' },
+        { status: 500 }
+      );
+    }
+
     const { data: existingUser } = await supabaseAdmin.auth.admin.listUsers();
     const userExists = existingUser?.users.some(u => u.email === email);
 

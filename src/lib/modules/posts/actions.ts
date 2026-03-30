@@ -1,10 +1,10 @@
 'use server';
 
 import { prisma } from '@/lib/db';
-import { createPostSchema, updatePostSchema } from './schema';
+import { createPostSchema, updatePostSchema, CreatePostInput, UpdatePostInput } from './schema';
 import { revalidatePath } from 'next/cache';
 
-export async function createPost(data: createPostSchema._input, userId: string) {
+export async function createPost(data: CreatePostInput, userId: string) {
   const post = await prisma.post.create({
     data: {
       companyId: data.companyId,
@@ -34,7 +34,7 @@ export async function createPost(data: createPostSchema._input, userId: string) 
   return post;
 }
 
-export async function updatePost(id: string, data: updatePostSchema._input) {
+export async function updatePost(id: string, data: UpdatePostInput) {
   const post = await prisma.post.update({
     where: { id },
     data: {

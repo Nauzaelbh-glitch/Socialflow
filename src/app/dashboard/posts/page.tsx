@@ -14,6 +14,8 @@ const mockPosts = [
     content: {
       facebook: { text: '¡Nuevo producto lanzado! Descubre cómo nuestra solución puede transformar tu negocio. Link en bio #innovación #negocios' },
       instagram: { text: '¡Nuevo producto lanzado! 🔥 Descubre cómo nuestra solución puede transformar tu negocio. Link en bio #innovación #negocios' },
+      twitter: { text: '' },
+      linkedin: { text: '' },
     },
     platforms: ['facebook', 'instagram'],
     status: 'PUBLISHED' as const,
@@ -23,6 +25,8 @@ const mockPosts = [
   {
     id: '2',
     content: {
+      facebook: { text: '' },
+      instagram: { text: '' },
       twitter: { text: '5 consejos para mejorar tu presencia en redes sociales. Thread completo abajo 👇' },
       linkedin: { text: '5 consejos para mejorar tu presencia en redes sociales. Lea el artículo completo para más detalles.' },
     },
@@ -35,6 +39,9 @@ const mockPosts = [
     id: '3',
     content: {
       facebook: { text: '¡Gran noticia! Hemos alcanzado 10,000 seguidores en Facebook. Gracias por el apoyo 🙌' },
+      instagram: { text: '' },
+      twitter: { text: '' },
+      linkedin: { text: '' },
     },
     platforms: ['facebook'],
     status: 'SCHEDULED' as const,
@@ -43,7 +50,10 @@ const mockPosts = [
   {
     id: '4',
     content: {
+      facebook: { text: '' },
       instagram: { text: 'Detrás de escenas de nuestro último shoot. ¿Os gusta el resultado? 🎬' },
+      twitter: { text: '' },
+      linkedin: { text: '' },
     },
     platforms: ['instagram'],
     status: 'DRAFT' as const,
@@ -51,6 +61,9 @@ const mockPosts = [
   {
     id: '5',
     content: {
+      facebook: { text: '' },
+      instagram: { text: '' },
+      twitter: { text: '' },
       linkedin: { text: 'Estamos contratando! Buscamos desarrolladores full-stack con experiencia en React y Node.js.' },
     },
     platforms: ['linkedin'],
@@ -79,7 +92,6 @@ export default function PostsPage() {
     DRAFT: mockPosts.filter((p) => p.status === 'DRAFT').length,
     SCHEDULED: mockPosts.filter((p) => p.status === 'SCHEDULED').length,
     PUBLISHED: mockPosts.filter((p) => p.status === 'PUBLISHED').length,
-    FAILED: mockPosts.filter((p) => p.status === 'FAILED').length,
   };
 
   return (
@@ -105,7 +117,6 @@ export default function PostsPage() {
               <option value="DRAFT">Borradores ({statusCounts.DRAFT})</option>
               <option value="SCHEDULED">Programados ({statusCounts.SCHEDULED})</option>
               <option value="PUBLISHED">Publicados ({statusCounts.PUBLISHED})</option>
-              <option value="FAILED">Fallidos ({statusCounts.FAILED})</option>
             </select>
           </div>
           <div className="flex items-center gap-2">

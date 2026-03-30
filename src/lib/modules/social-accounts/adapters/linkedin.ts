@@ -161,7 +161,7 @@ export class LinkedInAdapter implements PlatformAdapter {
             body: JSON.stringify({
               registerUploadRequest: {
                 recipes: ['urn:li:digitalmediaRecipe:feedshare-image'],
-                owner,
+                owner: author,
                 serviceRelationships: [
                   {
                     relationshipType: 'OWNER',
@@ -197,10 +197,9 @@ export class LinkedInAdapter implements PlatformAdapter {
             {
               status: 'READY',
               originalUrl: imageUrl,
-              asset: assetUrl,
             },
           ],
-        };
+        } as any;
       }
 
       const response = await fetch(

@@ -26,17 +26,24 @@ export default function LoginPage() {
     setError('');
     setIsSubmitting(true);
 
+    if (!email || !password) {
+      setError('Por favor, completa todos los campos');
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const result = await signIn(email, password);
-      
+
       if (result.error) {
         setError(result.error);
-      } else {
-        window.location.href = '/dashboard';
+        setIsSubmitting(false);
+        return;
       }
+
+      window.location.href = '/dashboard';
     } catch (err) {
-      setError('Error al iniciar sesión. Intenta de nuevo.');
-    } finally {
+      setError('Error al iniciar sesión. Por favor, intenta de nuevo.');
       setIsSubmitting(false);
     }
   };

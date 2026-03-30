@@ -8,7 +8,7 @@ import { Eye, EyeOff, UserPlus, Check } from 'lucide-react';
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { signUp } = useAuth();
+  const { signUp, signIn, isLoading: authLoading } = useAuth();
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -53,11 +53,22 @@ export default function RegisterPage() {
 
       if (result.error) {
         setError(result.error);
+        setIsLoading(false);
+        return;
+      }
+
+      const loginResult = await signIn(formData.email, formData.password);
+
+      if (loginResult.error) {
+        setError('Cuenta creada, pero error al iniciar sesión. Por favor, inicia sesión manualmente.');
+        setTimeout(() => {
+          router.push('/login');
+        }, 2000);
       } else {
         setSuccess(true);
         setTimeout(() => {
-          router.push('/dashboard');
-        }, 2000);
+          window.location.href = '/dashboard';
+        }, 1500);
       }
     } catch (err) {
       setError('Error al registrar. Intenta de nuevo.');
