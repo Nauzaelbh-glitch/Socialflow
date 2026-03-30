@@ -78,16 +78,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
 
-  useEffect(() => {
-    try {
-      const client = getSupabaseClient();
-      setSupabase(client);
-    } catch (error) {
-      console.error('Failed to initialize Supabase client:', error);
-      setIsLoading(false);
-    }
-  }, []);
-
   const fetchUser = useCallback(async (userId: string) => {
     try {
       const response = await fetch(`/api/auth/user?id=${userId}`);
@@ -104,11 +94,75 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+
+    const initAuth = async () => {
+      if (!mounted) return;
+
+      const timeoutId = setTimeout(() => {
+        if (mounted) {
+          console.warn('Auth init timeout');
+          setIsLoading(false);
+        }
+      }, 8000);
+
+      try {
+        const client = getSupabaseClient();
+        if (!mounted) {
+          clearTimeout(timeoutId);
+          return;
+        }
+        setSupabase(client);
+
+        const { data: { user: authUser } } = await client.auth.getUser();
+        clearTimeout(timeoutId);
+
+        if (!mounted) return;
+
+        if (authUser) {
+          const response = await fetch(`/api/auth/user?id=${authUser.id}`);
+          if (response.ok && mounted) {
+            const data = await response.json();
+            setUser(data.user);
+          }
+        }
+
+        if (mounted) {
+          setIsLoading(false);
+        }
+      } catch (error) {
+        clearTimeout(timeoutId);
+        console.error('Failed to initialize auth:', error);
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    initAuth();
+
+    const subscription = supabase?.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
+
+      if (event === 'SIGNED_IN' && session?.user) {
+        await fetchUser(session.user.id);
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setIsLoading(false);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription?.data?.subscription?.unsubscribe();
+    };
+  }, [fetchUser]);
+
   const signIn = useCallback(async (email: string, password: string) => {
     if (!supabase) {
       return { error: 'Cliente no inicializado' };
     }
-    setIsLoading(true);
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -120,24 +174,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (data.user) {
-        const timeoutPromise = new Promise<'timeout'>((resolve) => {
-          setTimeout(() => resolve('timeout'), 5000);
-        });
-
-        const fetchPromise = fetchUser(data.user.id);
-        const result = await Promise.race([fetchPromise, timeoutPromise]);
-
-        if (result === 'timeout') {
-          console.warn('fetchUser timeout, continuing anyway');
-        }
+        await fetchUser(data.user.id);
       }
 
       return {};
     } catch (err) {
       console.error('Sign in error:', err);
       return { error: 'Error al iniciar sesión' };
-    } finally {
-      setIsLoading(false);
     }
   }, [fetchUser, supabase]);
 
@@ -194,64 +237,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [fetchUser, supabase]);
 
-  useEffect(() => {
-    if (!supabase) return;
 
-    const initAuth = async () => {
-      try {
-        const timeoutPromise = new Promise<'timeout'>((resolve) => {
-          setTimeout(() => resolve('timeout'), 10000);
-        });
-
-        const authPromise = supabase.auth.getUser();
-
-        const result = await Promise.race([authPromise, timeoutPromise]);
-
-        if (result === 'timeout') {
-          console.warn('Auth init timeout');
-          setIsLoading(false);
-          return;
-        }
-
-        const { data: { user: authUser }, error } = result;
-
-        if (error) {
-          console.error('Auth init error:', error);
-          setIsLoading(false);
-          return;
-        }
-
-        if (authUser) {
-          await fetchUser(authUser.id);
-        } else {
-          setIsLoading(false);
-        }
-      } catch (err) {
-        console.error('Init auth error:', err);
-        setIsLoading(false);
-      }
-    };
-
-    initAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      try {
-        if (session?.user) {
-          await fetchUser(session.user.id);
-        } else {
-          setUser(null);
-          setIsLoading(false);
-        }
-      } catch (err) {
-        console.error('Auth state change error:', err);
-        setIsLoading(false);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [fetchUser, supabase]);
 
   const value: AuthContextType = {
     user,
