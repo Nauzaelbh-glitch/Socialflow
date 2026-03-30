@@ -1,84 +1,52 @@
 import { NextResponse, type NextRequest } from 'next/server';
 
-function isValidUrl(url: string): boolean {
-  try {
-    const parsed = new URL(url);
-    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
-  } catch {
-    return false;
-  }
-}
-
 export async function middleware(request: NextRequest) {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const { pathname } = request.nextUrl;
+  
+  const isAuthPage = pathname.startsWith('/login') ||
+                     pathname.startsWith('/register') ||
+                     pathname.startsWith('/reset-password');
+  
+  const isPublicPage = pathname.startsWith('/_next') ||
+                       pathname.startsWith('/_vercel') ||
+                       pathname.includes('.');
 
-  const isAuthPage = request.nextUrl.pathname.startsWith('/login') ||
-                     request.nextUrl.pathname.startsWith('/register') ||
-                     request.nextUrl.pathname.startsWith('/reset-password');
+  const sfAccess = request.cookies.get('sf_access')?.value;
+  const hasAccess = sfAccess === 'granted';
 
-  const isPublicPage = request.nextUrl.pathname === '/' ||
-                       request.nextUrl.pathname.startsWith('/api/auth') ||
-                       request.nextUrl.pathname.startsWith('/_next');
-
-  const hasValidConfig = supabaseUrl && 
-                         supabaseKey && 
-                         isValidUrl(supabaseUrl) && 
-                         !supabaseUrl.includes('[YOUR');
-
-  if (!hasValidConfig) {
-    if (!isAuthPage && !isPublicPage) {
+  if (pathname === '/' || pathname === '') {
+    if (hasAccess) {
       const url = request.nextUrl.clone();
-      url.pathname = '/login';
+      url.pathname = '/dashboard';
       return NextResponse.redirect(url);
     }
-    return NextResponse.next({ request });
-  }
-
-  const { createServerClient } = await import('@supabase/ssr');
-  
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
-
-  const supabase = createServerClient(
-    supabaseUrl,
-    supabaseKey,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet: { name: string; value: string; options?: any }[]) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          supabaseResponse = NextResponse.next({
-            request,
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user && !isAuthPage && !isPublicPage) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
   }
 
-  if (user && isAuthPage) {
+  if (pathname === '/login') {
+    if (hasAccess) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/dashboard';
+      return NextResponse.redirect(url);
+    }
+    return NextResponse.next();
+  }
+
+  if (!isPublicPage && !hasAccess) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    return NextResponse.redirect(url);
+  }
+
+  if (hasAccess && isAuthPage) {
     const url = request.nextUrl.clone();
     url.pathname = '/dashboard';
     return NextResponse.redirect(url);
   }
 
-  return supabaseResponse;
+  return NextResponse.next();
 }
 
 export const config = {
